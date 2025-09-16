@@ -2,27 +2,27 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_HUB_CREDENTIALS = credentials('docker-hub-cred')  // Jenkins credential ID for Docker Hub
-        DOCKER_IMAGE = "sachinashokyadav/notes-website"
-        DEPLOY_SERVER = "ec2-user@<EC2-PUBLIC-IP>" // Replace with your EC2 user and public IP
+        DOCKER_HUB_CREDENTIALS = credentials('docker-hub-cred')  // Docker Hub credentials ID in Jenkins
+        DOCKER_IMAGE = "sachinashokyadav/notes-website"          // Replace with your repo name
+        DEPLOY_SERVER = "ec2-user@<EC2-PUBLIC-IP>"               // Replace with EC2 user + public IP
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/<your-username>/<your-repo>.git'
+                git branch: 'main', url: 'https://github.com/sachinashokyadav/devops_tools.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh "docker build -t ${DOCKER_IMAGE}:${BUILD_NUMBER} ."
+                    sh "docker build -t ${DOCKER_IMAGE}:${BUILD_NUMBER} ./Jenkins/Deploy-Docker-image-to-Nginx-Web/Notes-Taking-Website"
                 }
             }
         }
 
-        stage('Login to Docker Hub & Push') {
+        stage('Login & Push to Docker Hub') {
             steps {
                 script {
                     sh "echo ${DOCKER_HUB_CREDENTIALS_PSW} | docker login -u ${DOCKER_HUB_CREDENTIALS_USR} --password-stdin"
@@ -31,16 +31,30 @@ pipeline {
             }
         }
 
-        stage('Deploy to EC2') {
+        stage('Deploy on EC2') {
             steps {
                 script {
-                    sshagent(['ec2-ssh-key']) { // Jenkins credential ID for EC2 private key
+                    sshagent(['ec2-ssh-key']) { // Jenkins credentials ID for EC2 private key
                         sh """
                         ssh -o StrictHostKeyChecking=no ${DEPLOY_SERVER} '
-                            docker login -u ${DOCKER_HUB_CREDENTIALS_USR} -p ${DOCKER_HUB_CREDENTIALS_PSW}
-                            docker pull ${DOCKER_IMAGE}:${BUILD_NUMBER}
+                            # Install Docker if not present
+                            if ! command -v docker &> /dev/null
+                            then
+                                sudo apt update -y
+                                sudo apt install -y docker.io
+                                sudo systemctl enable docker
+                                sudo systemctl start docker
+                            fi
+
+                            # Login to Docker Hub
+                            echo ${DOCKER_HUB_CREDENTIALS_PSW} | docker login -u ${DOCKER_HUB_CREDENTIALS_USR} --password-stdin
+
+                            # Stop and remove old container if running
                             docker stop notes-website || true
                             docker rm notes-website || true
+
+                            # Pull new image and run
+                            docker pull ${DOCKER_IMAGE}:${BUILD_NUMBER}
                             docker run -d --name notes-website -p 80:80 ${DOCKER_IMAGE}:${BUILD_NUMBER}
                         '
                         """
@@ -52,10 +66,10 @@ pipeline {
 
     post {
         success {
-            echo "Deployment successful!"
+            echo "🚀 Deployment successful! Access your website at http://${DEPLOY_SERVER}"
         }
         failure {
-            echo "Pipeline failed. Please check logs."
+            echo "❌ Pipeline failed. Check logs."
         }
     }
 }
