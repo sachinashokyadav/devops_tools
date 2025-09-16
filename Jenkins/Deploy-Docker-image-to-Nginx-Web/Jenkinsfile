@@ -5,8 +5,8 @@ pipeline {
         string(name: 'GITHUB_REPO', defaultValue: 'https://github.com/sachinashokyadav/devops_tools.git', description: 'GitHub repository URL')
         string(name: 'GITHUB_BRANCH', defaultValue: 'main', description: 'GitHub branch to build from')
         string(name: 'DOCKER_IMAGE', defaultValue: 'sachinashokyadav/notes-website', description: 'Docker Hub repository (username/repo)')
-        string(name: 'EC2_USER', defaultValue: 'ec2-user', description: 'EC2 username (e.g. ec2-user, ubuntu)')
-        string(name: 'EC2_HOST', defaultValue: '<EC2-PUBLIC-IP>', description: 'EC2 Public IP or DNS')
+        string(name: 'EC2_USER', defaultValue: 'ubuntu', description: 'EC2 username')
+        string(name: 'EC2_HOST', defaultValue: '<EC2-PUBLIC-IP>', description: 'EC2 Public IP/DNS')
         string(name: 'EC2_SSH_KEY', defaultValue: 'ec2-ssh-key', description: 'Jenkins Credential ID for EC2 private key')
         string(name: 'DOCKER_CRED_ID', defaultValue: 'docker-hub-cred', description: 'Jenkins Credential ID for Docker Hub')
     }
@@ -21,6 +21,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
+                    sh "docker version"  // sanity check
                     sh "docker build -t ${params.DOCKER_IMAGE}:${BUILD_NUMBER} ./Jenkins/Deploy-Docker-image-to-Nginx-Web/Notes-Taking-Website"
                 }
             }
@@ -40,24 +41,23 @@ pipeline {
         stage('Deploy on EC2') {
             steps {
                 sshagent([params.EC2_SSH_KEY]) {
-                    sh """
-                        ssh -o StrictHostKeyChecking=no ${params.EC2_USER}@${params.EC2_HOST} '
-                                sudo apt update -y
+                    withCredentials([usernamePassword(credentialsId: "${params.DOCKER_CRED_ID}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        sh """
+                            ssh -o StrictHostKeyChecking=no ${params.EC2_USER}@${params.EC2_HOST} '
                                 sudo systemctl enable docker
                                 sudo systemctl start docker
+                                docker --version
 
-                            # Login to Docker Hub
-                            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                                echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
 
-                            # Stop old container if exists
-                            docker stop notes-website || true
-                            docker rm notes-website || true
+                                docker stop notes-website || true
+                                docker rm notes-website || true
 
-                            # Pull new image & run
-                            docker pull ${params.DOCKER_IMAGE}:${BUILD_NUMBER}
-                            docker run -d --name notes-website -p 80:80 ${params.DOCKER_IMAGE}:${BUILD_NUMBER}
-                        '
-                    """
+                                docker pull ${params.DOCKER_IMAGE}:${BUILD_NUMBER}
+                                docker run -d --name notes-website -p 80:80 ${params.DOCKER_IMAGE}:${BUILD_NUMBER}
+                            '
+                        """
+                    }
                 }
             }
         }
