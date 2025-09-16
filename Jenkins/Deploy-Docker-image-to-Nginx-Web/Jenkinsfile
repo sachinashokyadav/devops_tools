@@ -2,46 +2,42 @@ pipeline {
     agent any
 
     parameters {
-        string(name: 'GITHUB_REPO', defaultValue: 'https://github.com/sachinashokyadav/devops_tools.git', description: 'GitHub repository URL')
-        string(name: 'GITHUB_BRANCH', defaultValue: 'main', description: 'Branch to deploy from')
         string(name: 'EC2_USER', defaultValue: 'ubuntu', description: 'EC2 username (ubuntu/ec2-user)')
         string(name: 'EC2_HOST', defaultValue: '<EC2-PUBLIC-IP>', description: 'EC2 Public IP or DNS')
         string(name: 'EC2_SSH_KEY', defaultValue: 'ec2-ssh-key', description: 'Jenkins Credential ID for EC2 private key')
+        string(name: 'DOCKER_IMAGE', defaultValue: 'your-dockerhub-username/notes-website:latest', description: 'Docker Hub Image name with tag')
+        string(name: 'DOCKER_CRED', defaultValue: 'dockerhub-cred', description: 'Jenkins Credential ID for DockerHub (Username/Password)')
     }
 
     stages {
-        stage('Deploy to EC2') {
+        stage('Deploy from Docker Hub to EC2') {
             steps {
                 sshagent([params.EC2_SSH_KEY]) {
-                    sh """
-                        ssh -o StrictHostKeyChecking=no ${params.EC2_USER}@${params.EC2_HOST} '
-                            # Update packages
-                            sudo apt update -y
+                    withCredentials([usernamePassword(credentialsId: params.DOCKER_CRED, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        sh """
+                            ssh -o StrictHostKeyChecking=no ${params.EC2_USER}@${params.EC2_HOST} '
+                                # Update packages
+                                sudo apt update -y
 
-                            # Ensure Docker is running
-                            sudo systemctl enable docker || true
-                            sudo systemctl start docker || true
+                                # Ensure Docker is running
+                                sudo systemctl enable docker || true
+                                sudo systemctl start docker || true
 
-                            # Clone/Update repo
-                            if [ ! -d ~/website ]; then
-                                git clone -b ${params.GITHUB_BRANCH} ${params.GITHUB_REPO} ~/website
-                            else
-                                cd ~/website && git fetch && git checkout ${params.GITHUB_BRANCH} && git pull
-                            fi
+                                # Docker login
+                                echo "$DOCKER_PASS" | sudo docker login -u "$DOCKER_USER" --password-stdin
 
-                            cd ~/website/Jenkins/Deploy-Docker-image-to-Nginx-Web/Notes-Taking-Website
+                                # Stop & remove old container
+                                sudo docker stop notes-website || true
+                                sudo docker rm notes-website || true
 
-                            # Build docker image
-                            sudo docker build -t notes-website:latest .
+                                # Pull image from Docker Hub
+                                sudo docker pull ${params.DOCKER_IMAGE}
 
-                            # Stop & remove old container
-                            sudo docker stop notes-website || true
-                            sudo docker rm notes-website || true
-
-                            # Run container on port 80
-                            sudo docker run -d --name notes-website -p 80:80 notes-website:latest
-                        '
-                    """
+                                # Run container on port 80
+                                sudo docker run -d --name notes-website -p 80:80 ${params.DOCKER_IMAGE}
+                            '
+                        """
+                    }
                 }
             }
         }
@@ -49,7 +45,7 @@ pipeline {
 
     post {
         success {
-            echo "🚀 Website deployed successfully! Access it at http://${params.EC2_HOST}"
+            echo "🚀 Container deployed successfully from Docker Hub! Access it at http://${params.EC2_HOST}"
         }
         failure {
             echo "❌ Deployment failed. Check Jenkins logs."
