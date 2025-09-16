@@ -6,7 +6,7 @@ pipeline {
         string(name: 'EC2_HOST', defaultValue: '<EC2-PUBLIC-IP>', description: 'EC2 Public IP or DNS')
         string(name: 'EC2_SSH_KEY', defaultValue: 'ec2-ssh-key', description: 'Jenkins Credential ID for EC2 private key')
         string(name: 'DOCKER_IMAGE', defaultValue: 'sachinashokyadav/notes-taking-website:latest', description: 'Docker Hub Image name with tag')
-        string(name: 'DOCKER_CRED', defaultValue: 'dockerhub-cred', description: 'Jenkins Credential ID for DockerHub (Username/Password)')
+        string(name: 'DOCKER_CRED', defaultValue: 'docker-hub-cred', description: 'Jenkins Credential ID for DockerHub (Username/Password)')
     }
 
     stages {
