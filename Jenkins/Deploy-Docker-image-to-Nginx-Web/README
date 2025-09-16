@@ -1,0 +1,74 @@
+CI/CD Pipeline with Jenkins, Docker & AWS EC2
+
+This lab shows how to deploy a Notes-Taking Website automatically using Jenkins pipeline, Docker, and AWS EC2.
+The Jenkinsfile in this repo pulls website code, builds/pulls a Docker image, and deploys the container on an EC2 instance.
+
+📌 What You’ll Learn
+Store website code & Jenkinsfile in GitHub
+Build and push Docker image to Docker Hub
+Configure Jenkins with DockerHub & EC2 credentials
+Use Jenkins Pipeline to:
+Connect to EC2
+Pull Docker image from private DockerHub repo
+Run container on port 80
+
+⚙️ Prerequisites
+GitHub account (with website code + Jenkinsfile)
+Docker Hub account (with private repo sachinashokyadav/notes-taking-website)
+Jenkins server installed (with Git, Docker, and SSH Agent plugins)
+AWS EC2 instance (Ubuntu) with:
+Open ports 22 (SSH) and 80 (HTTP)
+Docker installed (sudo apt install -y docker.io)
+
+Jenkins Credentials:
+ec2-ssh-key → SSH private key of EC2 (type: SSH Username with private key)
+dockerhub-cred → DockerHub username & password (type: Username with password)
+
+📝 Steps to Perform:
+
+1. Clone Repository
+Your GitHub repo should contain:
+Website source code
+Jenkinsfile
+Example:
+git clone https://github.com/<your-username>/<your-repo>.git
+
+2. Configure Jenkins
+Create New Item → Pipeline
+Select Pipeline from SCM → Git
+Provide GitHub repo URL & branch (main)
+Save
+
+3. Add Credentials in Jenkins
+EC2 SSH Key
+Go to: Jenkins → Manage Jenkins → Credentials → Global → Add Credentials
+Kind: SSH Username with private key
+ID: ec2-ssh-key
+Username: ubuntu
+Private Key: Paste your EC2 PEM file
+DockerHub Credentials
+Kind: Username with password
+ID: dockerhub-cred
+Username: <your-dockerhub-username>
+Password: <your-dockerhub-password>
+
+4. Run Jenkins Pipeline
+Build → Enter parameters:
+EC2_USER → ubuntu
+EC2_HOST → <your-EC2-public-IP>
+EC2_SSH_KEY → ec2-ssh-key
+DOCKER_IMAGE → sachinashokyadav/notes-taking-website:latest
+DOCKER_CRED → dockerhub-cred
+Jenkins will:
+SSH into EC2
+Login to DockerHub
+Pull image sachinashokyadav/notes-taking-website:latest
+Stop old container (if running)
+Run new container on port 80
+
+5. Verify Deployment
+SSH into EC2 and check running containers:
+docker ps
+Open browser → http://<EC2-PUBLIC-IP>
+
+You should see the Notes-Taking Website 🎉
