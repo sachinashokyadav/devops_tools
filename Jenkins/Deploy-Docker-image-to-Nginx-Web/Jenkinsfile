@@ -1,42 +1,47 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKER_HUB_CREDENTIALS = credentials('docker-hub-cred')  // Docker Hub credentials ID in Jenkins
-        DOCKER_IMAGE = "sachinashokyadav/notes-taking-website"          // Replace with your repo name
-        DEPLOY_SERVER = "ubuntu@13.201.79.61"               // Replace with EC2 user + public IP
+    parameters {
+        string(name: 'GITHUB_REPO', defaultValue: 'https://github.com/sachinashokyadav/devops_tools.git', description: 'GitHub repository URL')
+        string(name: 'GITHUB_BRANCH', defaultValue: 'main', description: 'GitHub branch to build from')
+        string(name: 'DOCKER_IMAGE', defaultValue: 'sachinashokyadav/notes-website', description: 'Docker Hub repository (username/repo)')
+        string(name: 'EC2_USER', defaultValue: 'ec2-user', description: 'EC2 username (e.g. ec2-user, ubuntu)')
+        string(name: 'EC2_HOST', defaultValue: '<EC2-PUBLIC-IP>', description: 'EC2 Public IP or DNS')
+        string(name: 'EC2_SSH_KEY', defaultValue: 'ec2-ssh-key', description: 'Jenkins Credential ID for EC2 private key')
+        string(name: 'DOCKER_CRED_ID', defaultValue: 'docker-hub-cred', description: 'Jenkins Credential ID for Docker Hub')
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/sachinashokyadav/devops_tools.git'
+                git branch: "${params.GITHUB_BRANCH}", url: "${params.GITHUB_REPO}"
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh "docker build -t ${DOCKER_IMAGE}:${BUILD_NUMBER} ./Jenkins/Deploy-Docker-image-to-Nginx-Web/Notes-Taking-Website"
+                    sh "docker build -t ${params.DOCKER_IMAGE}:${BUILD_NUMBER} ./Jenkins/Deploy-Docker-image-to-Nginx-Web/Notes-Taking-Website"
                 }
             }
         }
 
         stage('Login & Push to Docker Hub') {
             steps {
-                script {
-                    sh "echo ${DOCKER_HUB_CREDENTIALS_PSW} | docker login -u ${DOCKER_HUB_CREDENTIALS_USR} --password-stdin"
-                    sh "docker push ${DOCKER_IMAGE}:${BUILD_NUMBER}"
+                withCredentials([usernamePassword(credentialsId: "${params.DOCKER_CRED_ID}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh """
+                        echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
+                        docker push ${params.DOCKER_IMAGE}:${BUILD_NUMBER}
+                    """
                 }
             }
         }
 
         stage('Deploy on EC2') {
             steps {
-                script {
-                    sshagent(['ec2-ssh-key']) { // Jenkins credentials ID for EC2 private key
-                        sh """
-                        ssh -o StrictHostKeyChecking=no ${DEPLOY_SERVER} '
+                sshagent([params.EC2_SSH_KEY]) {
+                    sh """
+                        ssh -o StrictHostKeyChecking=no ${params.EC2_USER}@${params.EC2_HOST} '
                             # Install Docker if not present
                             if ! command -v docker &> /dev/null
                             then
@@ -47,18 +52,17 @@ pipeline {
                             fi
 
                             # Login to Docker Hub
-                            echo ${DOCKER_HUB_CREDENTIALS_PSW} | docker login -u ${DOCKER_HUB_CREDENTIALS_USR} --password-stdin
+                            echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
 
-                            # Stop and remove old container if running
+                            # Stop old container if exists
                             docker stop notes-website || true
                             docker rm notes-website || true
 
-                            # Pull new image and run
-                            docker pull ${DOCKER_IMAGE}:${BUILD_NUMBER}
-                            docker run -d --name notes-website -p 80:80 ${DOCKER_IMAGE}:${BUILD_NUMBER}
+                            # Pull new image & run
+                            docker pull ${params.DOCKER_IMAGE}:${BUILD_NUMBER}
+                            docker run -d --name notes-website -p 80:80 ${params.DOCKER_IMAGE}:${BUILD_NUMBER}
                         '
-                        """
-                    }
+                    """
                 }
             }
         }
@@ -66,7 +70,7 @@ pipeline {
 
     post {
         success {
-            echo "🚀 Deployment successful! Access your website at http://${DEPLOY_SERVER}"
+            echo "🚀 Deployment successful! Access at http://${params.EC2_HOST}"
         }
         failure {
             echo "❌ Pipeline failed. Check logs."
