@@ -2,9 +2,9 @@ pipeline {
     agent any
 
     parameters {
-        string(name: 'EC2_CREDENTIALS_ID', defaultValue: 'ec2-ssh-key', description: 'Jenkins SSH Credentials ID')
-        string(name: 'EC2_USERNAME', defaultValue: 'ubuntu', description: 'EC2 Username')
-        string(name: 'EC2_IP', defaultValue: '65.2.177.68', description: 'EC2 Public IP Address')
+        string(name: 'EC2_CREDENTIALS_ID', description: 'Jenkins SSH Credentials ID')
+        string(name: 'EC2_USERNAME', description: 'EC2 Username (e.g., ubuntu, ec2-user)')
+        string(name: 'EC2_IP', description: 'EC2 Public IP Address')
     }
 
     stages {
@@ -30,8 +30,8 @@ pipeline {
 
                             # Backup old files if they exist
                             sudo mv /var/www/html/index.html /var/www/html/index.html.bak || true
-                            #sudo mv /var/www/html/myscript1.js /var/www/html/myscript1.js.bak || true
-                            #sudo mv /var/www/html/mystyle1.css /var/www/html/mystyle1.css.bak || true
+                            sudo mv /var/www/html/myscript1.js /var/www/html/myscript1.js.bak || true
+                            sudo mv /var/www/html/mystyle1.css /var/www/html/mystyle1.css.bak || true
 
                             # Move new files
                             sudo mv /tmp/index.html /var/www/html/index.html
