@@ -18,13 +18,27 @@ pipeline {
             steps {
                 sshagent (credentials: [params.EC2_CREDENTIALS_ID]) {
                     sh """
+                        # Copy files from Jenkins workspace to EC2 /tmp
                         scp -o StrictHostKeyChecking=no Jenkins/Deploy-StaticWebsite-to-Apache-on-EC2/index.html ${params.EC2_USERNAME}@${params.EC2_IP}:/tmp/index.html
+                        scp -o StrictHostKeyChecking=no Jenkins/Deploy-StaticWebsite-to-Apache-on-EC2/myscript1.js ${params.EC2_USERNAME}@${params.EC2_IP}:/tmp/myscript1.js
+                        scp -o StrictHostKeyChecking=no Jenkins/Deploy-StaticWebsite-to-Apache-on-EC2/mystyle1.css ${params.EC2_USERNAME}@${params.EC2_IP}:/tmp/mystyle1.css
 
+                        # SSH into EC2 and deploy
                         ssh -o StrictHostKeyChecking=no ${params.EC2_USERNAME}@${params.EC2_IP} "
                             sudo apt update -y
                             sudo apt install apache2 -y
+
+                            # Backup old files if they exist
                             sudo mv /var/www/html/index.html /var/www/html/index.html.bak || true
+                            #sudo mv /var/www/html/myscript1.js /var/www/html/myscript1.js.bak || true
+                            #sudo mv /var/www/html/mystyle1.css /var/www/html/mystyle1.css.bak || true
+
+                            # Move new files
                             sudo mv /tmp/index.html /var/www/html/index.html
+                            sudo mv /tmp/myscript1.js /var/www/html/myscript1.js
+                            sudo mv /tmp/mystyle1.css /var/www/html/mystyle1.css
+
+                            # Restart apache
                             sudo systemctl restart apache2
                         "
                     """
