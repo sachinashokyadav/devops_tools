@@ -3,8 +3,8 @@ pipeline {
 
     environment {
         DOCKER_HUB_CREDENTIALS = credentials('docker-hub-cred')  // Docker Hub credentials ID in Jenkins
-        DOCKER_IMAGE = "sachinashokyadav/notes-website"          // Replace with your repo name
-        DEPLOY_SERVER = "ec2-user@<EC2-PUBLIC-IP>"               // Replace with EC2 user + public IP
+        DOCKER_IMAGE = "sachinashokyadav/notes-taking-website"          // Replace with your repo name
+        DEPLOY_SERVER = "ubuntu@13.201.79.61"               // Replace with EC2 user + public IP
     }
 
     stages {
