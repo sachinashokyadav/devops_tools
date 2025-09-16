@@ -19,8 +19,8 @@ pipeline {
                             sudo apt update -y
 
                             # Ensure Docker is running
-                            sudo systemctl enable docker
-                            sudo systemctl start docker
+                            sudo systemctl enable docker || true
+                            sudo systemctl start docker || true
 
                             # Clone/Update repo
                             if [ ! -d ~/website ]; then
@@ -32,14 +32,14 @@ pipeline {
                             cd ~/website/Jenkins/Deploy-Docker-image-to-Nginx-Web/Notes-Taking-Website
 
                             # Build docker image
-                            docker build -t notes-website:latest .
+                            sudo docker build -t notes-website:latest .
 
                             # Stop & remove old container
-                            docker stop notes-website || true
-                            docker rm notes-website || true
+                            sudo docker stop notes-website || true
+                            sudo docker rm notes-website || true
 
                             # Run container on port 80
-                            docker run -d --name notes-website -p 80:80 notes-website:latest
+                            sudo docker run -d --name notes-website -p 80:80 notes-website:latest
                         '
                     """
                 }
