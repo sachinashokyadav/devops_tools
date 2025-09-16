@@ -9,7 +9,7 @@ pipeline {
 
         stage('Deploy to EC2') {
     steps {
-        sshagent (credentials: ['ec2-ssh-key']) {
+        sshagent (credentials: ['ec2CredentialsId']) {
             sh '''
                 scp -o StrictHostKeyChecking=no Jenkins/Deploy-StaticWebsite-to-Apache-on-EC2/index.html ubuntu@65.2.177.68:/tmp/index.html
 
