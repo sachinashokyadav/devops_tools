@@ -1,0 +1,46 @@
+*{margin:0; padding:0;}
+
+#div1{top:20%; left:25%; width:50%; position:absolute; box-shadow:0 0 20px gray; background-image:linear-gradient(to left,black,white,black);}
+
+h1{
+color:white;
+background-image:linear-gradient(to left,cyan,blue,cyan);
+text-align:center;
+}
+
+label{
+color:white;
+margin-left:150px;
+font-size:27px;
+}
+
+input{
+height:40px;
+width:250px;
+margin-top:25px;
+font-size:18px;
+text-align:center;
+background-image:linear-gradient(to left,white,cyan,white);
+}
+
+#value{width:230px;}
+
+button{
+margin-left:270px;
+margin-top:25px;
+height:40px;
+width:100px;
+color:white;
+background-color:green;
+box-shadow:0 0 15px gray;
+border-radius:10px;
+/*background-image:linear-gradient(to left,lawngreen,green,lawngreen);*/
+}
+
+p{
+text-align:center;
+color:white;
+font-size:20px;
+margin-top:20px;
+background-image:linear-gradient(to left,cyan,blue,cyan);
+}
