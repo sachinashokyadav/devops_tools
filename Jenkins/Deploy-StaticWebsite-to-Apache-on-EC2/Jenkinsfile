@@ -1,5 +1,12 @@
 pipeline {
     agent any
+
+    parameters {
+        string(name: 'EC2_CREDENTIALS_ID', defaultValue: 'ec2-ssh-key', description: 'Jenkins SSH Credentials ID')
+        string(name: 'EC2_USERNAME', defaultValue: 'ubuntu', description: 'EC2 Username')
+        string(name: 'EC2_IP', defaultValue: '65.2.177.68', description: 'EC2 Public IP Address')
+    }
+
     stages {
         stage('Checkout Code') {
             steps {
@@ -8,24 +15,22 @@ pipeline {
         }
 
         stage('Deploy to EC2') {
-    steps {
-        sshagent (credentials: ['ec2CredentialsId']) {
-            sh '''
-                scp -o StrictHostKeyChecking=no Jenkins/Deploy-StaticWebsite-to-Apache-on-EC2/index.html ubuntu@65.2.177.68:/tmp/index.html
+            steps {
+                sshagent (credentials: [params.EC2_CREDENTIALS_ID]) {
+                    sh """
+                        scp -o StrictHostKeyChecking=no Jenkins/Deploy-StaticWebsite-to-Apache-on-EC2/index.html ${params.EC2_USERNAME}@${params.EC2_IP}:/tmp/index.html
 
-                ssh -o StrictHostKeyChecking=no ubuntu@65.2.177.68 "
-                    sudo apt update -y
-                    sudo apt install apache2 -y
-                    sudo mv /var/www/html/index.html /var/www/html/index.html.bak || true
-                    sudo mv /tmp/index.html /var/www/html/index.html
-                    sudo systemctl restart apache2
-                "
-            '''
+                        ssh -o StrictHostKeyChecking=no ${params.EC2_USERNAME}@${params.EC2_IP} "
+                            sudo apt update -y
+                            sudo apt install apache2 -y
+                            sudo mv /var/www/html/index.html /var/www/html/index.html.bak || true
+                            sudo mv /tmp/index.html /var/www/html/index.html
+                            sudo systemctl restart apache2
+                        "
+                    """
+                }
+            }
         }
-    }
-}
-
-
     }
 
     post {
