@@ -1,0 +1,63 @@
+# 🚀 Jenkins Lab: Deploy Static Website to Apache on EC2
+
+This lab shows how to use a **Jenkins Pipeline** to deploy a static website (HTML, CSS, JS) onto an **Apache Web Server** running on AWS EC2.
+
+---
+
+## 📂 Project Files
+Jenkins/Deploy-StaticWebsite-to-Apache-on-EC2/
+├── Jenkinsfile # Pipeline definition
+├── index.html # Homepage
+├── myscript1.js # JavaScript
+└── mystyle1.css # CSS
+
+---
+
+## 🛠 Prerequisites
+- AWS **EC2 instance** with SSH access (Ubuntu or Amazon Linux).
+- **Jenkins installed** on your server.
+- **SSH key** for EC2 added to Jenkins credentials.
+
+---
+
+## 🔑 Add EC2 SSH Key in Jenkins
+1. Go to: `Manage Jenkins` → `Credentials` → `Global credentials`.
+2. Add new:
+   - Kind → `SSH Username with private key`
+   - ID → `ec2-ssh-key`
+   - Username → `ubuntu` (or `ec2-user` for Amazon Linux)
+   - Private key → paste `.pem` file contents
+3. Save.
+
+---
+
+## ⚙️ Configure Pipeline
+1. Create a new Jenkins job → **Pipeline**.
+2. Set:
+   - Pipeline script from SCM → Git
+   - Repo URL → `https://github.com/sachinashokyadav/devops_tools.git`
+   - Branch → `main`
+   - Script Path → `Jenkins/Deploy-StaticWebsite-to-Apache-on-EC2/Jenkinsfile`
+3. Save.
+
+---
+
+## ▶️ Run Deployment
+1. Build with Parameters:
+   - `EC2_CREDENTIALS_ID` → your Jenkins SSH credential ID  
+   - `EC2_USERNAME` → EC2 login user (`ubuntu` or `ec2-user`)  
+   - `EC2_IP` → EC2 public IP  
+2. Jenkins will:
+   - Checkout code
+   - Install Apache (if missing)
+   - Backup old files
+   - Copy `index.html`, `mystyle1.css`, `myscript1.js` to `/var/www/html/`
+   - Restart Apache
+
+---
+
+## 🌐 Access Website
+Open:  
+http://<EC2_PUBLIC_IP>/
+
+You should see the deployed static site 🎉
