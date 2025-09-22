@@ -1,0 +1,86 @@
+pipeline {
+    agent { label 'docker-builder' } // Dedicated agent with docker & trivy pre-installed
+
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('docker-hub-cred')
+        IMAGE_NAME = "sachinashokyadav/food-delivery-web"
+        COMMIT_SHA = "${env.GIT_COMMIT.take(7)}" // Short SHA for immutable tag
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/sachinashokyadav/devops_tools.git'
+            }
+        }
+
+        stage('Security Scans') {
+            parallel {
+                stage('Code Security Scan') {
+                    steps {
+                        echo "🔍 Running code security scan..."
+                        sh '''
+                        trivy fs --exit-code 1 --severity HIGH,CRITICAL --format table --output code-scan-report.txt .
+                        '''
+                    }
+                    post {
+                        always {
+                            archiveArtifacts artifacts: 'code-scan-report.txt', fingerprint: true
+                        }
+                    }
+                }
+
+                stage('Docker Image Security Scan') {
+                    steps {
+                        echo "🔍 Running Docker image security scan..."
+                        sh '''
+                        docker build --cache-from $IMAGE_NAME:latest -t $IMAGE_NAME:${BUILD_NUMBER} .
+                        trivy image --exit-code 1 --severity HIGH,CRITICAL --format table --output image-scan-report.txt $IMAGE_NAME:${BUILD_NUMBER}
+                        '''
+                    }
+                    post {
+                        always {
+                            archiveArtifacts artifacts: 'image-scan-report.txt', fingerprint: true
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Login to DockerHub') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-cred', usernameVariable: 'USR', passwordVariable: 'PSW')]) {
+                    sh 'echo $PSW | docker login -u $USR --password-stdin'
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                echo "🚀 Pushing Docker images..."
+                sh '''
+                docker tag $IMAGE_NAME:${BUILD_NUMBER} $IMAGE_NAME:${COMMIT_SHA}
+                docker push $IMAGE_NAME:${COMMIT_SHA}
+                docker tag $IMAGE_NAME:${BUILD_NUMBER} $IMAGE_NAME:latest
+                docker push $IMAGE_NAME:latest
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ Pipeline completed successfully!"
+            // Add notifications here (Slack, Teams, Email)
+        }
+        failure {
+            echo "❌ Pipeline failed! Check logs and reports."
+            // Add failure notifications here
+        }
+        always {
+            echo "🧹 Cleaning up workspace..."
+            cleanWs()
+        }
+    }
+}
