@@ -1,0 +1,88 @@
+pipeline {
+    agent any
+
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('docker-hub-cred') // Jenkins stored creds
+        IMAGE_NAME = "sachinashokyadav/food-delivery-web"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/your-username/Food-Delivery-Web-CI-CD.git'
+            }
+        }
+
+        stage('Code Security Scan') {
+            steps {
+                script {
+                    echo "🔍 Running security scan on source code with Trivy..."
+                    sh '''
+                    if ! command -v trivy &> /dev/null
+                    then
+                        echo "Installing Trivy..."
+                        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
+                    fi
+                    trivy fs --exit-code 0 --severity HIGH,CRITICAL --format table --output code-scan-report.txt .
+                    '''
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'code-scan-report.txt', fingerprint: true
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    sh 'docker build -t $IMAGE_NAME:${BUILD_NUMBER} .'
+                }
+            }
+        }
+
+        stage('Docker Image Security Scan') {
+            steps {
+                script {
+                    echo "🔍 Running security scan on Docker image with Trivy..."
+                    sh '''
+                    trivy image --exit-code 0 --severity HIGH,CRITICAL --format table --output image-scan-report.txt $IMAGE_NAME:${BUILD_NUMBER}
+                    '''
+                }
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: 'image-scan-report.txt', fingerprint: true
+                }
+            }
+        }
+
+        stage('Login to DockerHub') {
+            steps {
+                script {
+                    sh "echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin"
+                }
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                script {
+                    sh 'docker push $IMAGE_NAME:${BUILD_NUMBER}'
+                    sh 'docker tag $IMAGE_NAME:${BUILD_NUMBER} $IMAGE_NAME:latest'
+                    sh 'docker push $IMAGE_NAME:latest'
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "✅ Build, Security Scan, Reports and Push successful!"
+        }
+        failure {
+            echo "❌ Pipeline failed. Check logs and reports!"
+        }
+    }
+}
