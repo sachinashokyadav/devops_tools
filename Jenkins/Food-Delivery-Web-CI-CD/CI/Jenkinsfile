@@ -9,6 +9,12 @@ pipeline {
 
     stages {
 
+        stage('Checkout') {
+    steps {
+        echo "SCM checkout already handled by Jenkins"
+    }
+}
+
         stage('Security Scans') {
             parallel {
                 stage('Code Security Scan') {
