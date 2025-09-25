@@ -6,15 +6,12 @@ pipeline {
         IMAGE_NAME = "sachinashokyadav/food-delivery-web"
         COMMIT_SHA = "${env.GIT_COMMIT.take(7)}"
     }
-
-    stages {
-
-        stage('Checkout') {
-    steps {
-        echo "SCM checkout already handled by Jenkins"
-    }
-}    
-        #stage('Checkout') { steps { git branch: 'main', url: 'https://github.com/sachinashokyadav/devops_tools.git' } }
+    
+        stage('Checkout') { 
+            steps { 
+                git branch: 'main', url: 'https://github.com/sachinashokyadav/devops_tools.git' 
+            } 
+        }
 
         stage('Security Scans') {
             parallel {
