@@ -1,0 +1,16 @@
+---
+- name: Install and Start Nginx
+  hosts: ec2-instance   # group/host from inventory file
+  become: yes
+  tasks:
+    - name: Install Nginx
+  #The easiest way in Ansible is to use the package module (it auto-detects apt, yum, or dnf)
+      package:        
+        name: nginx
+        state: present
+
+    - name: Start and Enable Nginx
+      service:
+        name: nginx
+        state: started
+        enabled: yes
