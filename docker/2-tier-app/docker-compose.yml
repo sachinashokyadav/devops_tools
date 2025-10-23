@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports:
+      - "3000:80"   # Browser -> Frontend (Nginx/React)
+    depends_on:
+      - backend
+
+  backend:
+    build: ./backend
+    container_name: backend
+    ports:
+      - "5000:5000" # Frontend -> Backend API
+    environment:
+      - MONGO_URL=mongodb://mongo:27017/mydb
