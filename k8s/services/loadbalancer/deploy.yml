@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx-app
+    env: qa
+spec:
+  replicas: 3 ## 3 number of pod running
+  selector:
+    matchLabels:
+      env: qa
+      app: nginx-app
+
+  template:
+    metadata:
+      labels:
+        env: qa
+        app: nginx-app
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:latest
+          ports:
+            - containerPort: 80
