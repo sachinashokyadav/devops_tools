@@ -4,7 +4,7 @@ A practical collection of DevOps automation, infrastructure provisioning, and de
 
 This repository is designed to help you learn and experiment with common DevOps workflows used in real-world environments.
 
-# Overview
+## Overview
 
 The repository includes examples for:
 
@@ -15,8 +15,9 @@ The repository includes examples for:
 - Containerization and multi-service deployments with Docker
 - Kubernetes resource manifests for workloads and services
 
-# Repository Structure
+## Repository Structure
 
+```text
 devops_tools/
 ├── Jenkins/
 │   ├── Deploy-Docker-image-to-Nginx-Web/
@@ -50,51 +51,56 @@ devops_tools/
 │   └── vpc/
 ├── README.md
 └── LICENSE (if added in future)
+```
 
+## Tools and Technologies
 
-Tools and Technologies :
+- Jenkins for CI/CD automation
+- Terraform for IaC provisioning
+- Ansible for configuration management
+- Bash scripting for operational tasks
+- Docker for containerization
+- Kubernetes manifests for orchestration
+- AWS resources for infrastructure examples
 
-Jenkins for CI/CD automation
-Terraform for IaC provisioning
-Ansible for configuration management
-Bash scripting for operational tasks
-Docker for containerization
-Kubernetes manifests for orchestration
-AWS resources for infrastructure examples
-Prerequisites
+## Prerequisites
 
 Before using the scripts and configuration files, make sure you have:
 
-Git installed
-A Linux/macOS environment or WSL for local testing
-AWS CLI configured if you are working with Terraform/AWS resources
-Docker and Docker Compose installed
-Kubernetes tools such as kubectl (for K8s examples)
-Terraform installed
-Ansible installed
-Jenkins configured for pipeline execution
-Getting Started
+- Git installed
+- A Linux/macOS environment or WSL for local testing
+- AWS CLI configured if you are working with Terraform/AWS resources
+- Docker and Docker Compose installed
+- Kubernetes tools such as kubectl (for K8s examples)
+- Terraform installed
+- Ansible installed
+- Jenkins configured for pipeline execution
 
-1. Clone the repository
+## Getting Started
 
-bash
+### 1. Clone the repository
+
+```bash
 git clone https://github.com/sachinashokyadav/devops_tools.git
 cd devops_tools
-2. Explore a specific area
+```
+
+### 2. Explore a specific area
 
 Examples are organized by technology:
 
-Jenkins: Jenkins/
-Ansible: ansible/
-Bash: bash/
-Docker: docker/
-Kubernetes: k8s/
-Terraform: terraform/
-3. Run the relevant automation
+- Jenkins: `Jenkins/`
+- Ansible: `ansible/`
+- Bash: `bash/`
+- Docker: `docker/`
+- Kubernetes: `k8s/`
+- Terraform: `terraform/`
+
+### 3. Run the relevant automation
 
 Example commands:
 
-bash
+```bash
 # Run a Bash automation script
 bash bash/system_health_monitor.sh
 
@@ -106,93 +112,93 @@ cd docker/2-tier-app && docker-compose up -d
 
 # Initialize Terraform
 cd terraform/ec2 && terraform init && terraform plan
-Jenkins Examples
+```
 
-The Jenkins/ folder contains sample CI/CD pipeline examples, including:
+## Jenkins Examples
 
-static website deployment on Apache on EC2
-Docker image deployment to Nginx
-food delivery web application pipeline
+The `Jenkins/` folder contains sample CI/CD pipeline examples, including:
+
+- static website deployment on Apache on EC2
+- Docker image deployment to Nginx
+- food delivery web application pipeline
+
 These examples show how to automate build, deployment, and infrastructure tasks with Jenkins pipelines.
 
-Ansible Examples
+## Ansible Examples
 
-The ansible/ directory contains playbooks for:
+The `ansible/` directory contains playbooks for:
 
-installing NGINX
-configuring a web server
-deploying a webpage to an EC2 instance
-Bash Automation Scripts
+- installing NGINX
+- configuring a web server
+- deploying a webpage to an EC2 instance
 
-The bash/ directory includes practical scripts for:
+## Bash Automation Scripts
 
-system health checks
-service monitoring
-package updates
-log cleanup
-disk space monitoring
-backups
-routine admin tasks
-Docker Examples
+The `bash/` directory includes practical scripts for:
 
-The docker/ folder contains sample applications and Docker setups for:
+- system health checks
+- service monitoring
+- package updates
+- log cleanup
+- disk space monitoring
+- backups
+- routine admin tasks
 
-2-tier apps
-3-tier apps
-Node-based web applications
-static website containers
-Kubernetes Examples
+## Docker Examples
 
-The k8s/ directory includes YAML manifests for:
+The `docker/` folder contains sample applications and Docker setups for:
 
-pods
-deployments
-replica sets
-nodeport services
-cluster services
-load balancer examples
-Terraform Examples
+- 2-tier apps
+- 3-tier apps
+- Node-based web applications
+- static website containers
 
-The terraform/ folder includes infrastructure-as-code templates for:
+## Kubernetes Examples
 
-EC2 provisioning
-VPC setup
-EKS configuration
-Use Cases
+The `k8s/` directory includes YAML manifests for:
+
+- pods
+- deployments
+- replica sets
+- nodeport services
+- cluster services
+- load balancer examples
+
+## Terraform Examples
+
+The `terraform/` folder includes infrastructure-as-code templates for:
+
+- EC2 provisioning
+- VPC setup
+- EKS configuration
+
+## Use Cases
 
 This repository is useful for:
 
-learning DevOps fundamentals
-testing automation workflows locally
-prototyping CI/CD pipelines
-understanding infrastructure automation patterns
-preparing for DevOps interviews and hands-on labs
-Contributing
+- learning DevOps fundamentals
+- testing automation workflows locally
+- prototyping CI/CD pipelines
+- understanding infrastructure automation patterns
+- preparing for DevOps interviews and hands-on labs
+
+## Contributing
 
 Contributions are welcome. If you want to improve this repository:
 
-Fork the project
-Create a feature branch
-Add your changes
-Open a pull request
-License
+1. Fork the project
+2. Create a feature branch
+3. Add your changes
+4. Open a pull request
+
+## License
 
 This project is currently provided as a learning/demo repository. Please check the repository license file if one is added in the future.
 
-Author
+## Author
 
 Sachin Ashok Yadav
 
-Notes
+## Notes
 
 This repository is focused on hands-on examples and practical automation. Use the scripts and manifests carefully in a safe environment, especially when provisioning cloud resources or modifying system services.
-
-Code
-
-If you want, I can also make it:
-- shorter and cleaner for GitHub
-- more professional for portfolio
-- more beginner-friendly
-- more advanced/DevOps-focused
-
-  
