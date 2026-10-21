@@ -50,7 +50,9 @@ devops_tools/
 │   └── vpc/
 ├── README.md
 └── LICENSE (if added in future)
-Tools and Technologies
+
+
+Tools and Technologies :
 
 Jenkins for CI/CD automation
 Terraform for IaC provisioning
